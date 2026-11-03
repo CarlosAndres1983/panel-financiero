@@ -137,6 +137,12 @@ Abre <http://localhost:4200>. El archivo `web/proxy.conf.json` redirige `/api` a
 
 Abre dos ventanas de PowerShell (API y web), espera el health check y abre el navegador.
 
+Para detener ambos servicios:
+
+```powershell
+.\scripts\detener.ps1
+```
+
 ## Como funcióna una petición
 
 ```mermaid
