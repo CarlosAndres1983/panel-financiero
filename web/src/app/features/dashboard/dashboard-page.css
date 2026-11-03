@@ -1,0 +1,4 @@
+/* La pagina usa clases globales. Ajustes propios del dashboard. */
+.barra-valor {
+  font-variant-numeric: tabular-nums;
+}

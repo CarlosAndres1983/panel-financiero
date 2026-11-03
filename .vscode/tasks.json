@@ -1,0 +1,55 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "api: build",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "--nologo"],
+      "options": {
+        "cwd": "${workspaceFolder}/api/Panel.Api"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "api: run",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--urls", "http://localhost:5080"],
+      "options": {
+        "cwd": "${workspaceFolder}/api/Panel.Api"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "web: start",
+      "type": "shell",
+      "command": "npm start",
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "web: build",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "web: test",
+      "type": "shell",
+      "command": "npm test -- --watch=false",
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

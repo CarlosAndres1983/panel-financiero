@@ -1,0 +1,47 @@
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-mark">PF</span>
+      <span class="brand-texto">
+        <strong>Panel</strong>
+        <small>Financiero</small>
+      </span>
+    </a>
+
+    <nav class="nav">
+      <a routerLink="/dashboard" routerLinkActive="activo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" />
+        </svg>
+        Dashboard
+      </a>
+      <a routerLink="/propuestas" routerLinkActive="activo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h16v2H4V4Zm0 5h10v2H4V9Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z" />
+        </svg>
+        Propuestas
+      </a>
+    </nav>
+
+    <div class="sidebar-pie">
+      <span class="punto"></span>
+      <div>
+        <strong>Datos demo</strong>
+        <small>SQL Express · .NET 9</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="contenido">
+    <router-outlet />
+  </main>
+
+  <div class="toasts" aria-live="polite">
+    @for (n of notificaciones.items(); track n.id) {
+      <div [class]="'toast toast-' + n.tipo" role="status">
+        <span>{{ n.texto }}</span>
+        <button type="button" aria-label="Cerrar" (click)="notificaciones.cerrar(n.id)">×</button>
+      </div>
+    }
+  </div>
+</div>

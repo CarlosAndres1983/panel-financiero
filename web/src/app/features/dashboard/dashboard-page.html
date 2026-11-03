@@ -1,0 +1,175 @@
+<section class="pagina">
+  <header class="cabecera">
+    <div>
+      <h1>Resumen de cartera</h1>
+      <p>Propuestas, cuentas y movimientos de los últimos 7 días.</p>
+    </div>
+    <span class="fecha-hoy">{{ hoy }}</span>
+  </header>
+
+  @if (error()) {
+    <div class="aviso-error">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm" (click)="cargar()">Reintentar</button>
+    </div>
+  }
+
+  @if (cargando() && !datos()) {
+    <div class="grid-kpi">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="kpi">
+          <div class="skeleton" style="height: 12px; width: 55%"></div>
+          <div class="skeleton" style="height: 28px; width: 75%; margin-top: 16px"></div>
+          <div class="skeleton" style="height: 10px; width: 45%; margin-top: 12px"></div>
+        </div>
+      }
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="skeleton" style="height: 280px; margin: 16px"></div></div>
+      <div class="card"><div class="skeleton" style="height: 280px; margin: 16px"></div></div>
+    </div>
+  } @else if (datos(); as d) {
+    <div class="grid-kpi">
+      <article class="kpi" style="--acento: #0f766e; --acento-suave: #ecfdf5">
+        <div class="kpi-label">
+          Saldo administrado
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3 6a2 2 0 0 1 2-2h14v4H5a2 2 0 0 1-2-2Zm0 3h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Zm13 5.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z"
+              />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.saldoTotal | monto }}</div>
+        <div class="kpi-sub">{{ d.cuentasActivas }} cuentas · CLP (TC demo 950)</div>
+      </article>
+
+      <article class="kpi" style="--acento: #f59e0b; --acento-suave: #fffbeb">
+        <div class="kpi-label">
+          Propuestas pendientes
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 5h-2v6l4.5 2.7 1-1.7-3.5-2.1V7Z"
+              />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.propuestasPendientes }}</div>
+        <div class="kpi-sub">{{ d.montoPendiente | monto }} CLP en evaluación</div>
+      </article>
+
+      <article class="kpi" style="--acento: #2563eb; --acento-suave: #eff6ff">
+        <div class="kpi-label">
+          Movimientos de hoy
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 17.2 9 11l4 4 7.3-7.3 1.4 1.4L13 17.8l-4-4-4.6 4.6L3 17.2Z" />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.movimientosHoy }}</div>
+        <div class="kpi-sub">{{ d.montoMovimientosHoy | monto }} CLP operado</div>
+      </article>
+
+      <article class="kpi" style="--acento: #7c3aed; --acento-suave: #f5f3ff">
+        <div class="kpi-label">
+          Cuentas activas
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 9v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2H4Z"
+              />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.cuentasActivas }}</div>
+        <div class="kpi-sub">Operativas en la cartera</div>
+      </article>
+    </div>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-cab">
+          <h2>Propuestas por día</h2>
+          <span>Últimos 7 días · CLP</span>
+        </div>
+        <div class="card-cuerpo">
+          @if (barras().length) {
+            <div class="chart">
+              @for (b of barras(); track b.fecha) {
+                <div class="barra-col" [title]="b.cantidad + ' propuestas · ' + b.montoCorto">
+                  <span class="barra-valor">{{ b.montoCorto }}</span>
+                  <div class="barra" [style.height.%]="b.altura"></div>
+                  <span class="barra-dia">{{ b.dia }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="vacio">Sin actividad en el período.</div>
+          }
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-cab">
+          <h2>Distribución por estado</h2>
+          <span>{{ d.porEstado.length }} estados · CLP</span>
+        </div>
+        <div class="card-cuerpo">
+          @for (e of estados(); track e.codigo) {
+            <div class="estado-fila">
+              <span class="estado-nombre">{{ e.estado }}</span>
+              <span class="estado-monto">{{ e.cantidad }} · {{ e.monto | monto }}</span>
+              <div class="progreso">
+                <span [style.width.%]="e.porcentaje" [style.background]="e.color"></span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-cab">
+        <h2>Últimas propuestas</h2>
+        <a class="btn btn-sm" routerLink="/propuestas">Ver todas</a>
+      </div>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Propuesta</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th class="num">Monto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of d.ultimas; track p.idPropuesta) {
+              <tr routerLink="/propuestas">
+                <td>
+                  <div class="cliente">
+                    <span>#{{ p.idPropuesta }}</span>
+                    <small>{{ p.fechaSolicitud | date: 'dd-MM-yyyy HH:mm' }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="cliente">
+                    <span>{{ p.nombreCliente }}</span>
+                    <small>{{ p.numeroCuenta }}</small>
+                  </div>
+                </td>
+                <td>{{ p.tipoProducto | producto }}</td>
+                <td class="num">{{ p.monto | monto: p.moneda }}</td>
+                <td><app-badge-estado [codigo]="p.codigoEstado" [nombre]="p.estado" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</section>

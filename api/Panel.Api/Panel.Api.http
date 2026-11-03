@@ -1,0 +1,36 @@
+@host = http://localhost:5080
+
+### Salud de la API
+GET {{host}}/api/health
+
+### Dashboard (KPIs, serie de 7 dias, distribucion y ultimas propuestas)
+GET {{host}}/api/dashboard
+
+### Estados para el filtro
+GET {{host}}/api/propuestas/estados
+
+### Bandeja: ultimos 30 dias, pagina 1
+GET {{host}}/api/propuestas?fechaDesde=2026-10-04&fechaHasta=2026-11-03&pagina=1&tamano=10
+
+### Bandeja filtrada por estado y texto
+GET {{host}}/api/propuestas?fechaDesde=2026-10-04&fechaHasta=2026-11-03&estado=PEND&texto=CTA-0001&pagina=1&tamano=10
+
+### Aprobar una propuesta (reemplaza el id por uno pendiente)
+POST {{host}}/api/propuestas/1/resolver
+Content-Type: application/json
+
+{
+  "accion": "APROBAR",
+  "usuario": "analista.demo",
+  "comentario": "Cumple el perfil de riesgo"
+}
+
+### Rechazar una propuesta
+POST {{host}}/api/propuestas/2/resolver
+Content-Type: application/json
+
+{
+  "accion": "RECHAZAR",
+  "usuario": "analista.demo",
+  "comentario": "No cumple el perfil de riesgo"
+}

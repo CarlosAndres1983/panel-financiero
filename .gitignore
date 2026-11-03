@@ -1,0 +1,26 @@
+# Node / Angular
+node_modules/
+dist/
+.angular/
+coverage/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+
+# Entorno y logs
+.env
+*.log
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

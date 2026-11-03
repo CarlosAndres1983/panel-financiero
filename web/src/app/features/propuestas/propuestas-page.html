@@ -1,0 +1,346 @@
+<section class="pagina">
+  <header class="cabecera">
+    <div>
+      <h1>Bandeja de propuestas</h1>
+      <p>Filtra, revisa el detalle y resuelve las propuestas pendientes.</p>
+    </div>
+    <span class="fecha-hoy">{{ rango() }}</span>
+  </header>
+
+  <section class="card">
+    <div class="card-cuerpo">
+      <div class="filtros">
+        <div class="campo">
+          <label for="fecha-desde">Fecha desde</label>
+          <input
+            id="fecha-desde"
+            type="date"
+            [value]="filtros().fechaDesde"
+            (input)="actualizar('fechaDesde', $event)"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="fecha-hasta">Fecha hasta</label>
+          <input
+            id="fecha-hasta"
+            type="date"
+            [value]="filtros().fechaHasta"
+            (input)="actualizar('fechaHasta', $event)"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="estado">Estado</label>
+          <select id="estado" [value]="filtros().estado" (change)="actualizar('estado', $event)">
+            <option value="">Todos</option>
+            @for (e of estados(); track e.codigo) {
+              <option [value]="e.codigo">{{ e.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="texto">Cliente, RUT, cuenta o producto</label>
+          <input
+            id="texto"
+            type="search"
+            placeholder="Ej: 12.345.678-9 o CTA-0001"
+            [value]="filtros().texto"
+            (input)="actualizar('texto', $event)"
+            (keyup.enter)="aplicar()"
+          />
+        </div>
+
+        <div class="acciones-filtro">
+          <button
+            type="button"
+            class="btn btn-primario"
+            (click)="aplicar()"
+            [disabled]="cargando()"
+          >
+            Consultar
+          </button>
+          <button type="button" class="btn" (click)="limpiar()" [disabled]="cargando()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  @if (error()) {
+    <div class="aviso-error">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm" (click)="cargar()">Reintentar</button>
+    </div>
+  }
+
+  <section class="card" [class.cargando]="cargando()">
+    <div class="card-cab">
+      <h2>Resultados</h2>
+      <span>{{ cargando() ? 'Consultando...' : rango() }}</span>
+    </div>
+
+    @if (datos(); as d) {
+      @if (d.items.length) {
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Propuesta</th>
+                <th>Cliente</th>
+                <th>Cuenta</th>
+                <th>Producto</th>
+                <th class="num">Monto</th>
+                <th class="num">Plazo</th>
+                <th class="num">Tasa</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of d.items; track p.idPropuesta) {
+                <tr
+                  tabindex="0"
+                  [class.seleccionada]="p.idPropuesta === seleccionada()?.idPropuesta"
+                  (click)="seleccionar(p)"
+                  (keydown.enter)="seleccionar(p)"
+                >
+                  <td>
+                    <div class="cliente">
+                      <span>#{{ p.idPropuesta }}</span>
+                      <small>{{ p.fechaSolicitud | date: 'dd-MM-yyyy HH:mm' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ p.nombreCliente }}</span>
+                      <small>{{ p.rutCliente }} · {{ p.segmento }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ p.numeroCuenta }}</span>
+                      <small>{{ p.tipoCuenta }}</small>
+                    </div>
+                  </td>
+                  <td>{{ p.tipoProducto | producto }}</td>
+                  <td class="num">{{ p.monto | monto: p.moneda }}</td>
+                  <td class="num">{{ p.plazoDias }} d</td>
+                  <td class="num">{{ p.tasaAnual | number: '1.0-2' }}%</td>
+                  <td><app-badge-estado [codigo]="p.codigoEstado" [nombre]="p.estado" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="paginacion">
+          <span class="pagina-info">{{ rango() }}</span>
+
+          <div class="pagina-botones">
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Primera página"
+              [disabled]="d.pagina === 1"
+              (click)="cambiarPagina(1)"
+            >
+              «
+            </button>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Página anterior"
+              [disabled]="d.pagina === 1"
+              (click)="cambiarPagina(d.pagina - 1)"
+            >
+              ‹
+            </button>
+            <span class="pagina-info">{{ d.pagina }} / {{ d.totalPaginas }}</span>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Página siguiente"
+              [disabled]="d.pagina >= d.totalPaginas"
+              (click)="cambiarPagina(d.pagina + 1)"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Última página"
+              [disabled]="d.pagina >= d.totalPaginas"
+              (click)="cambiarPagina(d.totalPaginas)"
+            >
+              »
+            </button>
+
+            <select class="tamano" (change)="cambiarTamano($event)">
+              <option value="10" [selected]="filtros().tamano === 10">10 por página</option>
+              <option value="25" [selected]="filtros().tamano === 25">25 por página</option>
+              <option value="50" [selected]="filtros().tamano === 50">50 por página</option>
+            </select>
+          </div>
+        </div>
+      } @else {
+        <div class="vacio">
+          <strong>Sin propuestas para los filtros aplicados</strong>
+          Prueba ampliando el rango de fechas o limpiando la búsqueda.
+        </div>
+      }
+    } @else {
+      <div class="card-cuerpo">
+        <div class="skeleton" style="height: 240px"></div>
+      </div>
+    }
+  </section>
+</section>
+
+@if (seleccionada(); as p) {
+  <div class="backdrop" (click)="cerrarDetalle()"></div>
+
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo">
+    <div class="drawer-cab">
+      <div>
+        <h2 id="detalle-titulo">Propuesta #{{ p.idPropuesta }}</h2>
+        <p>{{ p.fechaSolicitud | date: 'dd-MM-yyyy HH:mm' }} · {{ p.asesor }}</p>
+      </div>
+      <div class="drawer-acciones">
+        <app-badge-estado [codigo]="p.codigoEstado" [nombre]="p.estado" />
+        <button type="button" class="cerrar" aria-label="Cerrar detalle" (click)="cerrarDetalle()">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <div class="drawer-cuerpo">
+      <div class="monto-grande">
+        {{ p.monto | monto: p.moneda }}
+        <small>{{ p.moneda }}</small>
+      </div>
+
+      <dl class="datos">
+        <div class="dato">
+          <dt>Cliente</dt>
+          <dd>
+            {{ p.nombreCliente }}
+            @if (p.flgPep === 'S') {
+              <span class="chip-pep">PEP</span>
+            }
+          </dd>
+        </div>
+        <div class="dato">
+          <dt>RUT</dt>
+          <dd>{{ p.rutCliente }}</dd>
+        </div>
+        <div class="dato">
+          <dt>Segmento</dt>
+          <dd>{{ p.segmento }}</dd>
+        </div>
+        <div class="dato">
+          <dt>Cuenta</dt>
+          <dd>{{ p.numeroCuenta }} · {{ p.tipoCuenta }}</dd>
+        </div>
+        <div class="dato">
+          <dt>Saldo de la cuenta</dt>
+          <dd>{{ p.saldoCuenta | monto: p.moneda }}</dd>
+        </div>
+        <div class="dato">
+          <dt>Producto</dt>
+          <dd>{{ p.tipoProducto | producto }}</dd>
+        </div>
+        <div class="dato">
+          <dt>Plazo</dt>
+          <dd>{{ p.plazoDias }} días</dd>
+        </div>
+        <div class="dato">
+          <dt>Tasa anual</dt>
+          <dd>{{ p.tasaAnual | number: '1.0-2' }}%</dd>
+        </div>
+        <div class="dato">
+          <dt>Ejecutivo</dt>
+          <dd>{{ p.ejecutivo }}</dd>
+        </div>
+        @if (p.fechaResolucion) {
+          <div class="dato">
+            <dt>Resuelta el</dt>
+            <dd>{{ p.fechaResolucion | date: 'dd-MM-yyyy HH:mm' }}</dd>
+          </div>
+          <div class="dato">
+            <dt>Resuelta por</dt>
+            <dd>{{ p.usuarioResolucion }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (p.observacion) {
+        <div class="observacion">
+          <strong>Observación</strong>
+          <p>{{ p.observacion }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="drawer-pie">
+      @if (puedeResolver(p)) {
+        <button type="button" class="btn btn-peligro" (click)="abrirAccion('RECHAZAR')">
+          Rechazar
+        </button>
+        <button type="button" class="btn btn-exito" (click)="abrirAccion('APROBAR')">
+          Aprobar
+        </button>
+      } @else {
+        <span class="sin-acciones"
+          >Esta propuesta ya fue resuelta. No tiene acciones pendientes.</span
+        >
+      }
+    </div>
+  </aside>
+}
+
+@if (accion(); as a) {
+  <div class="modal" (click)="cerrarAccion()">
+    <div class="modal-caja" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h3>{{ a === 'APROBAR' ? 'Aprobar propuesta' : 'Rechazar propuesta' }}</h3>
+      <p>
+        #{{ seleccionada()?.idPropuesta }} · {{ seleccionada()?.nombreCliente }} ·
+        {{ seleccionada()?.monto | monto: seleccionada()?.moneda }}
+      </p>
+
+      <div class="campo">
+        <label for="comentario">Comentario (opcional, máx. 300 caracteres)</label>
+        <textarea
+          id="comentario"
+          maxlength="300"
+          placeholder="Motivo de la decisión..."
+          [value]="comentario()"
+          (input)="onComentario($event)"
+        ></textarea>
+      </div>
+
+      <div class="modal-acciones">
+        <button type="button" class="btn" (click)="cerrarAccion()" [disabled]="enviando()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn-exito]="a === 'APROBAR'"
+          [class.btn-peligro]="a === 'RECHAZAR'"
+          (click)="confirmarAccion()"
+          [disabled]="enviando()"
+        >
+          {{
+            enviando()
+              ? 'Guardando...'
+              : a === 'APROBAR'
+                ? 'Confirmar aprobación'
+                : 'Confirmar rechazo'
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
