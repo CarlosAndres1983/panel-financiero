@@ -19,7 +19,7 @@ Monitor de propuestas de inversión full stack, con datos 100% ficticios. Sirve 
 | --- |
 | ![Propuestas](docs/img/propuestas.png) |
 
-> ¿Quieres entender cómo está armada y cómo depurarla? Lee [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md): mapa de capas, el viaje de una petición y cómo poner breakpoints en API, navegador y SQL.
+> ¿Quieres entender cómo está armada y cómo depurarla? Lee [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md): mapa de capas, el viaje de una petición y cómo poner breakpoints en API, navegador y SQL. Y si vas a clonar el proyecto para estudiarlo, [`docs/PASO-A-PASO.md`](docs/PASO-A-PASO.md) te lleva de la mano: levantarlo tú mismo y recorrer el flujo con breakpoints, salto por salto.
 
 ## Stack
 
@@ -155,6 +155,10 @@ dotnet run
 La contraseña se puede cambiar con la variable `SA_PASSWORD` antes de `docker compose up -d`. Es una base de práctica con datos ficticios: la contraseña simple es intencional y el contenedor no debe exponerse a internet.
 
 ### 2. Levantar la API
+
+Con Visual Studio: abre `PanelFinanciero.sln` (raíz del repo) y presiona `F5`.
+
+O por terminal:
 
 ```powershell
 cd api\Panel.Api
