@@ -1,6 +1,7 @@
 using Microsoft.OpenApi;
 using Panel.Api.Data;
 using Panel.Api.Features.Dashboard;
+using Panel.Api.Features.Operaciones;
 using Panel.Api.Features.Propuestas;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,5 +55,6 @@ app.MapGet("/api/health", () => Results.Ok(new
 
 app.MapDashboardEndpoints();
 app.MapPropuestasEndpoints();
+app.MapOperacionesEndpoints();
 
 app.Run();

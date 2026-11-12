@@ -8,10 +8,12 @@ Monitor de propuestas de inversión full stack, con datos 100% ficticios. Sirve 
 
 - **Dashboard** con saldos, propuestas pendientes, movimientos del dia, serie de 7 dias y distribucion por estado.
 - **Bandeja de propuestas** con filtros por fecha, estado y texto, paginación en el servidor y detalle lateral.
+- **Operaciones de cuentas**: movimientos (créditos/débitos) con filtros, resumen en CLP y paginación en el servidor.
 - **Aprobar / rechazar** propuestas con transacción SQL, bloqueo `UPDLOCK`, validación de estado y auditoría.
 - **Swagger** para probar la API sin Postman.
 - **Datos de prueba deterministas**: 24 clientes, 40 cuentas, 600 propuestas y 2.000 movimientos, siempre relativos a la fecha de hoy.
 - **Consultas SQL de ejemplo** con joins, CTE, funciónes de ventana y deteccion de duplicados.
+- **SQL Server en Docker** (opcional) para quien clona el repo y no tiene SQL Server instalado.
 
 | Bandeja de propuestas |
 | --- |
@@ -40,17 +42,20 @@ panel-financiero/
       Features/
         Dashboard/           KPIs y serie de 7 dias
         Propuestas/          Bandeja, estados y aprobar/rechazar
+        Operaciones/         Movimientos de cuentas (creditos/debitos)
       Program.cs             Arranque, Swagger, CORS, health
       Panel.Api.http         Peticiones de ejemplo
   sql/
-    001_esquema.sql          Tablas, índices y vista vwPropuestaDetalle
+    001_esquema.sql          Tablas, índices y vistas vwPropuestaDetalle y vwOperacionDetalle
     002_datos_prueba.sql     Datos ficticios (idempotente)
     003_consultas_ejemplo.sql Consultas y ejercicios de SQL
   web/
     src/app/core/            Modelos, servicios HTTP, interceptor de errores
     src/app/layout/          Sidebar y layout general
-    src/app/features/        Dashboard y bandeja de propuestas
+    src/app/features/        Dashboard, bandeja de propuestas y operaciones
     src/app/shared/          Pipes y badge de estado
+  docker-compose.yml         SQL Server + carga de datos (opcional)
+  .github/workflows/ci.yml   Build y pruebas en cada push
   docs/
     APRENDER.md              Guia para alguien que viene de VB6/VB.NET
     img/                     Capturas
@@ -99,6 +104,29 @@ sqlcmd -S .\SQLEXPRESS -E -b -f 65001 -i sql\002_datos_prueba.sql
 El script `002` se puede ejecutar varias veces: borra los datos anteriores y los vuelve a generar con IDs explicitos. Las fechas son relativas a `GETDATE()`, por lo que la bandeja siempre tiene actividad reciente.
 
 > La base se llama `PanelFinanciero` y es independiente de AdventureWorks. No se toca ninguna base existente.
+
+### Alternativa: la base con Docker (opcional)
+
+Si el equipo donde vas a probar el proyecto no tiene SQL Server, `docker-compose.yml` levanta **SQL Server 2022 en un contenedor** y crea la base con esquema y datos en un solo paso:
+
+```powershell
+docker compose up -d
+```
+
+- El contenedor `panel-sqlserver` queda escuchando en `localhost,1433`.
+- El contenedor `panel-initdb` ejecuta `sql/001_esquema.sql` y `sql/002_datos_prueba.sql` y termina.
+- Para regenerar los datos: `docker compose up -d --force-recreate init-db`.
+- Los datos viven en el volumen `sql-data`; para borrar todo: `docker compose down -v`.
+
+La API necesita apuntar al contenedor. Arráncala con la variable de entorno (sin editar `appsettings.json`):
+
+```powershell
+cd api\Panel.Api
+$env:ConnectionStrings__Panel = "Server=localhost,1433;Database=PanelFinanciero;User Id=sa;Password=Panel*2026!;TrustServerCertificate=True;Encrypt=False"
+dotnet run
+```
+
+La contraseña se puede cambiar con la variable `SA_PASSWORD` antes de `docker compose up -d`. Es una base de práctica con datos ficticios: la contraseña simple es intencional y el contenedor no debe exponerse a internet.
 
 ### 2. Levantar la API
 
@@ -182,6 +210,7 @@ Puntos clave:
 | GET | `/api/propuestas` | Bandeja paginada (`fechaDesde`, `fechaHasta`, `estado`, `texto`, `pagina`, `tamano`) |
 | GET | `/api/propuestas/estados` | Estados para el filtro |
 | POST | `/api/propuestas/{id}/resolver` | Aprueba o rechaza una propuesta pendiente |
+| GET | `/api/operaciones` | Movimientos paginados (`fechaDesde`, `fechaHasta`, `tipo` C/D, `texto`, `pagina`, `tamano`); incluye `resumen` con totales del filtro |
 
 Ejemplo de aprobación:
 
@@ -325,7 +354,7 @@ Las consultas de [`sql/003_consultas_ejemplo.sql`](sql/003_consultas_ejemplo.sql
 ## Próximos pasos sugeridos
 
 1. **Login y roles**: JWT, usuario real en auditoría, roles analista/supervisor.
-2. **Pagina de movimientos**: filtros por cuenta y fecha, saldo calculado, exportacion CSV.
+2. **Operaciones**: exportación CSV, detalle por cuenta y filtro por segmento.
 3. **Máquina de estados**: impedir transiciones inválidas mas alla de pendiente -> aprobada/rechazada.
 4. **Pruebas de API**: xUnit + base de datos de prueba; pruebas de concurrencia del endpoint resolver.
 5. **Docker Compose**: SQL Server en Linux + API + Angular servido por nginx.

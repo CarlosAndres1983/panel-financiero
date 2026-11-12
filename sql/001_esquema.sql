@@ -191,3 +191,31 @@ INNER JOIN dbo.Cuenta AS cu ON cu.idCuenta = p.idCuenta
 INNER JOIN dbo.Cliente AS c ON c.idCliente = cu.idCliente
 INNER JOIN dbo.TipoEstado AS e ON e.idEstado = p.idEstado;
 GO
+
+/* ----------------------------------------------------------------------------
+   Vista de lectura: movimiento + cuenta + cliente.
+   Igual que la vista de propuestas, evita repetir el JOIN en la API.
+   ---------------------------------------------------------------------------- */
+CREATE OR ALTER VIEW dbo.vwOperacionDetalle
+AS
+SELECT
+    m.idMovimiento,
+    m.idCuenta,
+    cu.numeroCuenta,
+    cu.tipoCuenta,
+    cu.moneda,
+    cu.idCliente,
+    c.rutCliente,
+    c.nombreCliente,
+    c.segmento,
+    m.fecha,
+    m.tipo,
+    m.concepto,
+    m.monto,
+    /* Equivalente en CLP con tipo de cambio fijo solo para totales del demo. */
+    CAST(CASE WHEN cu.moneda = 'USD' THEN m.monto * 950 ELSE m.monto END AS DECIMAL(18,2)) AS montoClp,
+    m.referencia
+FROM dbo.Movimiento AS m
+INNER JOIN dbo.Cuenta AS cu ON cu.idCuenta = m.idCuenta
+INNER JOIN dbo.Cliente AS c ON c.idCliente = cu.idCliente;
+GO

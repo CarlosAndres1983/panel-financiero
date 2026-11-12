@@ -19,6 +19,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@features/propuestas/propuestas-page').then((m) => m.PropuestasPage),
       },
+      {
+        path: 'operaciones',
+        title: 'Operaciones · Panel Financiero',
+        loadComponent: () =>
+          import('@features/operaciones/operaciones-page').then((m) => m.OperacionesPage),
+      },
       { path: '**', redirectTo: 'dashboard' },
     ],
   },

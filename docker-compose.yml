@@ -1,0 +1,62 @@
+# ============================================================================
+# Panel Financiero - SQL Server en contenedor (opcional)
+# ----------------------------------------------------------------------------
+# Para quien clona este repositorio y no quiere instalar SQL Server Express:
+#
+#   docker compose up -d
+#
+# Levanta SQL Server 2022 + crea la base PanelFinanciero con el esquema y los
+# datos de prueba (sql/001 y sql/002). La API se conecta con:
+#
+#   "Server=localhost,1433;Database=PanelFinanciero;User Id=sa;Password=Panel*2026!;TrustServerCertificate=True;Encrypt=False"
+#
+# O sin editar archivos, arrancando la API con la variable:
+#   ConnectionStrings__Panel="Server=localhost,1433;..."
+# ============================================================================
+
+name: panel-financiero
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: panel-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:-Panel*2026!}
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: >-
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa
+        -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # Contenedor de una sola ejecucion: aplica esquema + datos de prueba.
+  # Los scripts son idempotentes, asi que `docker compose up -d --force-recreate init-db`
+  # regenera los datos sin romper nada.
+  init-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: panel-initdb
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD:-Panel*2026!}
+    volumes:
+      - ./sql:/sql:ro
+    entrypoint:
+      [
+        "/bin/bash",
+        "-c",
+        "/opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P \"$$SA_PASSWORD\" -C -b -f 65001 -i /sql/001_esquema.sql && /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P \"$$SA_PASSWORD\" -C -b -f 65001 -i /sql/002_datos_prueba.sql",
+      ]
+    restart: "no"
+
+volumes:
+  sql-data:

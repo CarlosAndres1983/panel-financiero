@@ -1,0 +1,15 @@
+/* La pagina usa clases globales. Ajustes propios de Operaciones. */
+.neto-negativo {
+  color: #b91c1c;
+}
+
+.monto-clp {
+  color: var(--muted);
+}
+
+.tamano {
+  width: auto;
+  margin-left: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+}

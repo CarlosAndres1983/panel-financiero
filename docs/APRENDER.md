@@ -70,6 +70,7 @@ Si algo no aparece, el problema está en uno de esos 9 pasos. La pestaña **Netw
 | `Comun/Fechas.cs` | Acepta `yyyy-MM-dd` y `dd-MM-yyyy` |
 | `Features/Propuestas/PropuestaDto.cs` | Contratos JSON (DTOs) |
 | `Features/Propuestas/PropuestasEndpoints.cs` | Búsqueda paginada, estados y resolver |
+| `Features/Operaciones/OperacionesEndpoints.cs` | Movimientos paginados + resumen con `QueryMultiple` |
 | `Features/Dashboard/DashboardEndpoints.cs` | KPIs con `QueryMultiple` |
 
 ### Frontend
@@ -82,6 +83,7 @@ Si algo no aparece, el problema está en uno de esos 9 pasos. La pestaña **Netw
 | `layout/shell/*` | Sidebar, contenido y toasts |
 | `features/dashboard/*` | KPIs y gráficos |
 | `features/propuestas/*` | Filtros, tabla, detalle y acciones |
+| `features/operaciones/*` | Movimientos de cuentas con resumen |
 | `shared/*` | Pipes de monto/producto y badge de estado |
 
 ### SQL

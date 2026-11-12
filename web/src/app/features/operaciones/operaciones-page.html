@@ -1,0 +1,258 @@
+<section class="pagina">
+  <header class="cabecera">
+    <div>
+      <h1>Operaciones de cuentas</h1>
+      <p>Créditos y débitos de las cuentas de los clientes, con resumen del período.</p>
+    </div>
+    <span class="fecha-hoy">{{ rango() }}</span>
+  </header>
+
+  <section class="card">
+    <div class="card-cuerpo">
+      <div class="filtros">
+        <div class="campo">
+          <label for="fecha-desde">Fecha desde</label>
+          <input
+            id="fecha-desde"
+            type="date"
+            [value]="filtros().fechaDesde"
+            (input)="actualizar('fechaDesde', $event)"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="fecha-hasta">Fecha hasta</label>
+          <input
+            id="fecha-hasta"
+            type="date"
+            [value]="filtros().fechaHasta"
+            (input)="actualizar('fechaHasta', $event)"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="tipo">Tipo</label>
+          <select id="tipo" [value]="filtros().tipo" (change)="actualizar('tipo', $event)">
+            <option value="">Todos</option>
+            <option value="C">Créditos</option>
+            <option value="D">Débitos</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="texto">Cliente, RUT, cuenta o referencia</label>
+          <input
+            id="texto"
+            type="search"
+            placeholder="Ej: CTA-0030 o REF-001710"
+            [value]="filtros().texto"
+            (input)="actualizar('texto', $event)"
+            (keyup.enter)="aplicar()"
+          />
+        </div>
+
+        <div class="acciones-filtro">
+          <button
+            type="button"
+            class="btn btn-primario"
+            (click)="aplicar()"
+            [disabled]="cargando()"
+          >
+            Consultar
+          </button>
+          <button type="button" class="btn" (click)="limpiar()" [disabled]="cargando()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  @if (error()) {
+    <div class="aviso-error">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm" (click)="cargar()">Reintentar</button>
+    </div>
+  }
+
+  @if (datos(); as d) {
+    <div class="grid-kpi">
+      <article class="kpi" style="--acento: #0f766e; --acento-suave: #ecfdf5">
+        <div class="kpi-label">
+          Operaciones
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5h16v2H4V5Zm0 6h10v2H4v-2Zm0 6h16v2H4v-2Z" />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.total }}</div>
+        <div class="kpi-sub">{{ rango() }}</div>
+      </article>
+
+      <article class="kpi" style="--acento: #059669; --acento-suave: #d1fae5">
+        <div class="kpi-label">
+          Créditos
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4h2v9.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4L11 13.2V4Zm-7 14h16v2H4v-2Z" />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.resumen.creditos }}</div>
+        <div class="kpi-sub">{{ d.resumen.montoCreditosClp | monto }} CLP</div>
+      </article>
+
+      <article class="kpi" style="--acento: #dc2626; --acento-suave: #fee2e2">
+        <div class="kpi-label">
+          Débitos
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 18h2V8.8l3.6 3.6 1.4-1.4-6-6-6 6 1.4 1.4L11 8.8V18Zm-7 2h16v2H4v-2Z" />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor">{{ d.resumen.debitos }}</div>
+        <div class="kpi-sub">{{ d.resumen.montoDebitosClp | monto }} CLP</div>
+      </article>
+
+      <article class="kpi" style="--acento: #0b1220; --acento-suave: #e2e8f0">
+        <div class="kpi-label">
+          Neto
+          <span class="kpi-icono">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+              />
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-valor" [class.neto-negativo]="netoNegativo()">
+          {{ d.resumen.netoClp | monto }}
+        </div>
+        <div class="kpi-sub">Créditos − débitos (CLP)</div>
+      </article>
+    </div>
+  }
+
+  <section class="card" [class.cargando]="cargando()">
+    <div class="card-cab">
+      <h2>Movimientos</h2>
+      <span>{{ cargando() ? 'Consultando...' : rango() }}</span>
+    </div>
+
+    @if (datos(); as d) {
+      @if (d.items.length) {
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Cuenta</th>
+                <th>Concepto</th>
+                <th>Tipo</th>
+                <th class="num">Monto</th>
+                <th class="num">En CLP</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of d.items; track o.idMovimiento) {
+                <tr>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ o.fecha | date: 'dd-MM-yyyy' }}</span>
+                      <small>{{ o.fecha | date: 'HH:mm' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ o.nombreCliente }}</span>
+                      <small>{{ o.rutCliente }} · {{ o.segmento }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ o.numeroCuenta }}</span>
+                      <small>{{ o.tipoCuenta }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cliente">
+                      <span>{{ o.concepto }}</span>
+                      <small>{{ o.referencia }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span [class]="'badge ' + claseTipo(o.tipo)">{{ etiquetaTipo(o.tipo) }}</span>
+                  </td>
+                  <td class="num">{{ o.monto | monto: o.moneda }}</td>
+                  <td class="num monto-clp">{{ o.montoClp | monto }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="paginacion">
+          <span class="pagina-info">{{ rango() }}</span>
+
+          <div class="pagina-botones">
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Primera página"
+              [disabled]="d.pagina === 1"
+              (click)="cambiarPagina(1)"
+            >
+              «
+            </button>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Página anterior"
+              [disabled]="d.pagina === 1"
+              (click)="cambiarPagina(d.pagina - 1)"
+            >
+              ‹
+            </button>
+            <span class="pagina-info">{{ d.pagina }} / {{ d.totalPaginas }}</span>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Página siguiente"
+              [disabled]="d.pagina >= d.totalPaginas"
+              (click)="cambiarPagina(d.pagina + 1)"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              class="pagina-num"
+              aria-label="Última página"
+              [disabled]="d.pagina >= d.totalPaginas"
+              (click)="cambiarPagina(d.totalPaginas)"
+            >
+              »
+            </button>
+
+            <select class="tamano" (change)="cambiarTamano($event)">
+              <option value="10" [selected]="filtros().tamano === 10">10 por página</option>
+              <option value="25" [selected]="filtros().tamano === 25">25 por página</option>
+              <option value="50" [selected]="filtros().tamano === 50">50 por página</option>
+            </select>
+          </div>
+        </div>
+      } @else {
+        <div class="vacio">
+          <strong>Sin movimientos para los filtros aplicados</strong>
+          Prueba ampliando el rango de fechas o limpiando la búsqueda.
+        </div>
+      }
+    } @else {
+      <div class="card-cuerpo">
+        <div class="skeleton" style="height: 240px"></div>
+      </div>
+    }
+  </section>
+</section>
