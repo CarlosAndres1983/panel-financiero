@@ -107,6 +107,30 @@ El script `002` se puede ejecutar varias veces: borra los datos anteriores y los
 
 > La base se llama `PanelFinanciero` y es independiente de AdventureWorks. No se toca ninguna base existente.
 
+### ¿No tienes SQL Express? Usa LocalDB
+
+**SQL Server LocalDB** es un SQL Server embebido para desarrollo: se instala en un minuto, no crea servicios que corren siempre, no se configura, y ejecuta el mismo T-SQL (vistas, `UPDLOCK`, `OFFSET/FETCH`, transacciones). Es el equivalente moderno a "adjuntar un archivo de datos" como se hacia con Access en apps de VB6. Se instala con el instalador de Visual Studio (componente *SQL Server Express 2022 LocalDB*) o descargando `SqlLocalDB.msi` de Microsoft.
+
+```powershell
+# 1. Verifica que este disponible
+sqlcmd -S "(localdb)\MSSQLLocalDB" -E -Q "SELECT @@VERSION"
+
+# 2. Crea la base con el mismo script, indicando la instancia
+.\scripts\crear-bd.ps1 -Servidor "(localdb)\MSSQLLocalDB"
+```
+
+Y apunta la API a esa instancia, sin editar archivos:
+
+```powershell
+cd api\Panel.Api
+$env:ConnectionStrings__Panel = "Server=(localdb)\MSSQLLocalDB;Database=PanelFinanciero;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+dotnet run
+```
+
+(o edita `appsettings.json` y cambia `Server=.\SQLEXPRESS` por `Server=(localdb)\MSSQLLocalDB`).
+
+> **¿Por que no SQLite?** El objetivo del proyecto es practicar T-SQL real: vistas con joins, paginacion `OFFSET/FETCH`, bloqueos `UPDLOCK`, transacciones con auditoria y deteccion de concurrencia (el `409` al resolver dos veces). SQLite no tiene bloqueos de fila con hint ni ese dialecto, y en el sector financiero el motor de referencia es SQL Server. LocalDB da la misma experiencia "todo local" sin sacrificar el SQL.
+
 ### Alternativa: la base con Docker (opcional)
 
 Si el equipo donde vas a probar el proyecto no tiene SQL Server, `docker-compose.yml` levanta **SQL Server 2022 en un contenedor** y crea la base con esquema y datos en un solo paso:
