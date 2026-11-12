@@ -19,6 +19,8 @@ Monitor de propuestas de inversión full stack, con datos 100% ficticios. Sirve 
 | --- |
 | ![Propuestas](docs/img/propuestas.png) |
 
+> ¿Quieres entender cómo está armada y cómo depurarla? Lee [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md): mapa de capas, el viaje de una petición y cómo poner breakpoints en API, navegador y SQL.
+
 ## Stack
 
 | Capa | Tecnologia |
@@ -347,7 +349,7 @@ ORDER BY idAuditoria DESC;
 
 ## Que aprender con este proyecto
 
-La guia [`docs/APRENDER.md`](docs/APRENDER.md) traduce los conceptos de VB6/VB.NET a la web y propone ejercicios concretos para romper y arreglar la aplicacion: cambiar un filtro SQL, simular un error 500, provocar un conflicto de aprobación, revisar un plan de ejecucion y agregar un endpoint nuevo.
+La guia [`docs/APRENDER.md`](docs/APRENDER.md) traduce los conceptos de VB6/VB.NET a la web y propone ejercicios concretos para romper y arreglar la aplicacion: cambiar un filtro SQL, simular un error 500, provocar un conflicto de aprobación, revisar un plan de ejecucion y agregar un endpoint nuevo. El mapa técnico con diagramas y recetas de depuración esta en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
 Las consultas de [`sql/003_consultas_ejemplo.sql`](sql/003_consultas_ejemplo.sql) estan pensadas para prácticar SQL de analista: CTE, `ROW_NUMBER`, `LAG`, `PERCENTILE_CONT`, agregaciones condicionales y deteccion de duplicados.
 
